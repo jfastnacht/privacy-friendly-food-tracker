@@ -28,7 +28,10 @@ import android.app.AlertDialog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.arch.persistence.room.Database;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.Barrier;
@@ -279,8 +282,8 @@ public class OverviewActivity extends AppCompatActivity {
         BigDecimal totalFat = new BigDecimal("0");
         BigDecimal totalSatFat = new BigDecimal("0");
         TextView heading = this.findViewById(R.id.overviewHeading);
+        TextView bottom = this.findViewById(R.id.bottomOverview);
         TextView macrosOverview = this.findViewById(R.id.overviewMacros);
-
         String cal = getString(R.string.total_calories);
         Date d = getDateForActivity();
         String formattedDate = getFormattedDate(d);
@@ -296,8 +299,19 @@ public class OverviewActivity extends AppCompatActivity {
                 // totalCalories += (e.energy * e.amount) / 100;
             }
         }
-        heading.setText(String.format(Locale.ENGLISH, "   %s: %.2f %s", formattedDate, totalCalories, cal));
+        BigDecimal maxCalories = getDailyGoal();
+        BigDecimal leftCalories = maxCalories.subtract(totalCalories);
+        heading.setText(String.format(Locale.ENGLISH, "%s: %.2f %s", formattedDate, totalCalories, cal));
         macrosOverview.setText(String.format(Locale.ENGLISH, "Carbs(sugar): %.2f (%.2f) - Protein: %.2f - Fat (sat.): %.2f (%.2f)", totalCarbs, totalSugar, totalProtein, totalFat, totalSatFat));
+        bottom.setText(String.format(Locale.ENGLISH, "%.2f %s left", leftCalories, cal));
+    }
+
+    private BigDecimal getDailyGoal() {
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_key) ,Context.MODE_PRIVATE);
+        float tempGoal = sharedPref.getFloat("goal", new Float("0"));
+        BigDecimal goal = new BigDecimal(tempGoal);
+
+        return goal;
     }
 
     /**
